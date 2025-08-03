@@ -168,80 +168,6 @@ Open [http://localhost:3000](http://localhost:3000) to see the application!
 - **Backend**: Supabase (PostgreSQL + Real-time + Storage)
 - **Deployment**: Vercel (recommended)
 
-### Project Structure
-```
-clip-room/
-├── app/                    # Next.js App Router
-│   ├── layout.tsx         # Root layout with theme provider
-│   ├── page.tsx           # Landing page
-│   └── room/[code]/       # Dynamic room pages
-├── components/            # React components
-│   ├── ui/               # shadcn/ui components
-│   ├── text-clipboard.tsx
-│   ├── image-clipboard.tsx
-│   └── join-room-modal.tsx
-├── lib/                  # Utility functions
-│   ├── supabase.ts       # Database client
-│   ├── cleanup.ts        # Room cleanup logic
-│   └── utils/            # Helper functions
-└── public/              # Static assets
-```
-
-### Database Schema
-```sql
-rooms {
-  id: UUID (primary key)
-  code: TEXT (6-char alphanumeric)
-  text_content: TEXT (nullable)
-  image_url: TEXT (nullable)
-  last_updated: TIMESTAMP
-  created_at: TIMESTAMP
-}
-```
-
----
-
-## 🔧 Development
-
-### Available Scripts
-```bash
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run start        # Start production server
-npm run lint         # Run ESLint
-```
-
-### Key Features Implementation
-
-#### Real-time Updates
-```typescript
-// Supabase real-time subscription
-const channel = supabase
-  .channel(`room-${roomCode}`)
-  .on("postgres_changes", {
-    event: "UPDATE",
-    schema: "public",
-    table: "rooms",
-    filter: `code=eq.${roomCode.toUpperCase()}`
-  }, (payload) => {
-    setRoom(payload.new as Room)
-  })
-```
-
-#### Clipboard Integration
-```typescript
-// Modern Clipboard API with fallbacks
-async function copyTextToClipboard(text: string): Promise<boolean> {
-  if (navigator.clipboard && window.isSecureContext) {
-    await navigator.clipboard.writeText(text)
-    return true
-  } else {
-    // Fallback for older browsers
-    // Implementation details...
-  }
-}
-```
-
 ---
 
 ## 🤝 Contributing
@@ -283,27 +209,18 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-## 🙏 Acknowledgments
-
-- **Next.js team** for the amazing framework
-- **Supabase team** for the real-time database
-- **shadcn/ui** for the beautiful components
-- **Tailwind CSS** for the utility-first styling
-- **Vercel** for seamless deployment
-
----
 
 <div align="center">
   <p>Made with ❤️ for seamless cross-device collaboration</p>
   <p>
-    <a href="https://github.com/yourusername/clip-room/stargazers">
-      <img src="https://img.shields.io/github/stars/yourusername/clip-room?style=social" alt="Stars" />
+    <a href="https://github.com/rizalrorschach/clip-room/stargazers">
+      <img src="https://img.shields.io/github/stars/rizalrorschach/clip-room?style=social" alt="Stars" />
     </a>
-    <a href="https://github.com/yourusername/clip-room/forks">
-      <img src="https://img.shields.io/github/forks/yourusername/clip-room?style=social" alt="Forks" />
+    <a href="https://github.com/rizalrorschach/clip-room/forks">
+      <img src="https://img.shields.io/github/forks/rizalrorschach/clip-room?style=social" alt="Forks" />
     </a>
-    <a href="https://github.com/yourusername/clip-room/issues">
-      <img src="https://img.shields.io/github/issues/yourusername/clip-room" alt="Issues" />
+    <a href="https://github.com/rizalrorschach/clip-room/issues">
+      <img src="https://img.shields.io/github/issues/rizalrorschach/clip-room" alt="Issues" />
     </a>
   </p>
 </div>
