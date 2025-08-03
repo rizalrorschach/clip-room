@@ -9,7 +9,7 @@ import { Progress } from "@/components/ui/progress"
 import { toast } from "sonner"
 import { supabase } from "@/lib/supabase"
 import { copyImageToClipboard, getImageFromClipboard, downloadImage } from "@/lib/utils/clipboard"
-import { Copy, Trash2, Upload, Download, RefreshCw } from "lucide-react"
+import { Copy, Trash2, Upload, Download, RefreshCw, ClipboardPaste } from "lucide-react"
 import Image from "next/image"
 
 interface ImageClipboardProps {
@@ -209,6 +209,24 @@ export function ImageClipboard({ roomCode, imageUrl, onImageUpdate }: ImageClipb
     }
   }
 
+  const handlePasteButton = async () => {
+    try {
+      const image = await getImageFromClipboard()
+      if (image) {
+        await uploadImage(image)
+      } else {
+        toast.error("No image found", {
+          description: "Clipboard doesn't contain an image. Try copying an image first.",
+        })
+      }
+    } catch (error) {
+      console.error("Failed to paste image:", error)
+      toast.error("Paste failed", {
+        description: "Unable to read image from clipboard. Please try again.",
+      })
+    }
+  }
+
   const handleRefresh = async () => {
     try {
       const { data, error } = await supabase
@@ -284,30 +302,42 @@ export function ImageClipboard({ roomCode, imageUrl, onImageUpdate }: ImageClipb
                 }}
               />
             </div>
-            <div className="flex gap-2 justify-center">
-              <Button onClick={handleCopyImage} variant="outline">
+            <div className="flex flex-wrap gap-2 justify-center">
+              <Button onClick={handlePasteButton} variant="outline" size="sm">
+                <ClipboardPaste className="w-4 h-4 mr-2" />
+                Paste Image
+              </Button>
+              <Button onClick={handleCopyImage} variant="outline" size="sm">
                 <Copy className="w-4 h-4 mr-2" />
                 Copy Image
               </Button>
-              <Button onClick={() => downloadImage(imageUrl!, `cliproom-image-${Date.now()}.png`)} variant="outline">
+              <Button onClick={() => downloadImage(imageUrl!, `cliproom-image-${Date.now()}.png`)} variant="outline" size="sm">
                 <Download className="w-4 h-4 mr-2" />
                 Download
               </Button>
-              <Button onClick={handleClearImage} variant="outline">
+              <Button onClick={handleClearImage} variant="outline" size="sm">
                 <Trash2 className="w-4 h-4 mr-2" />
                 Clear Image
               </Button>
             </div>
           </div>
-        ) : (
-          <div className="text-center py-8">
-            <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-lg font-medium mb-2">Drop an image or press Ctrl+V to paste</p>
-            <p className="text-sm text-muted-foreground">
-              Images will be shared instantly across all devices in this room
-            </p>
-          </div>
-        )}
+                 ) : (
+           <div className="space-y-4">
+             <div className="text-center py-8">
+               <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+               <p className="text-lg font-medium mb-2">Drop an image or press Ctrl+V to paste</p>
+               <p className="text-sm text-muted-foreground">
+                 Images will be shared instantly across all devices in this room
+               </p>
+             </div>
+             <div className="flex justify-center">
+               <Button onClick={handlePasteButton} variant="outline" size="sm">
+                 <ClipboardPaste className="w-4 h-4 mr-2" />
+                 Paste Image
+               </Button>
+             </div>
+           </div>
+         )}
       </Card>
     </div>
   )

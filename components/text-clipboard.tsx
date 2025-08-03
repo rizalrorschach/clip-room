@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
 import { supabase } from "@/lib/supabase"
 import { copyTextToClipboard } from "@/lib/utils/clipboard"
-import { Copy, Trash2, RefreshCw } from "lucide-react"
+import { Copy, Trash2, RefreshCw, ClipboardPaste } from "lucide-react"
 
 interface TextClipboardProps {
   roomCode: string
@@ -92,6 +92,28 @@ export function TextClipboard({ roomCode, textContent, onTextUpdate, lastUpdated
     })
   }
 
+  const handlePaste = async () => {
+    try {
+      const clipboardText = await navigator.clipboard.readText()
+      if (clipboardText.trim()) {
+        setText(clipboardText)
+        await updateText(clipboardText)
+        toast.success("Text pasted", {
+          description: "Text has been pasted from clipboard",
+        })
+      } else {
+        toast.error("No text found", {
+          description: "Clipboard is empty or doesn't contain text",
+        })
+      }
+    } catch (error) {
+      console.error("Failed to paste text:", error)
+      toast.error("Paste failed", {
+        description: "Unable to read from clipboard. Please try again.",
+      })
+    }
+  }
+
   const handleRefresh = async () => {
     try {
       const { data, error } = await supabase
@@ -141,12 +163,16 @@ export function TextClipboard({ roomCode, textContent, onTextUpdate, lastUpdated
         disabled={isUpdating}
       />
 
-      <div className="flex gap-2">
-        <Button onClick={handleCopyText} disabled={!text.trim()} variant="outline">
+      <div className="flex flex-wrap gap-2">
+        <Button onClick={handlePaste} variant="outline" size="sm">
+          <ClipboardPaste className="w-4 h-4 mr-2" />
+          Paste Text
+        </Button>
+        <Button onClick={handleCopyText} disabled={!text.trim()} variant="outline" size="sm">
           <Copy className="w-4 h-4 mr-2" />
           Copy Text
         </Button>
-        <Button onClick={handleClearText} disabled={!text.trim()} variant="outline">
+        <Button onClick={handleClearText} disabled={!text.trim()} variant="outline" size="sm">
           <Trash2 className="w-4 h-4 mr-2" />
           Clear Text
         </Button>
