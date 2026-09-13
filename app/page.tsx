@@ -9,6 +9,7 @@ import { toast } from "sonner"
 import { supabase } from "@/lib/supabase"
 import { generateRoomCode } from "@/lib/utils/room-generator"
 import { Plus, LogIn } from "lucide-react"
+import { ModeToggle } from "@/components/mode-toggle"
 
 export default function HomePage() {
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false)
@@ -45,7 +46,10 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 relative">
+      <div className="absolute top-4 right-4 flex items-center gap-2">
+        <ModeToggle />
+      </div>
       <div className="w-full max-w-md space-y-8">
         <div className="text-center space-y-2">
           <h1 className="text-4xl font-bold tracking-tight">ClipRoom</h1>

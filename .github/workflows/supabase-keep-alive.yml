@@ -1,0 +1,73 @@
+name: Keep Supabase Active
+
+on:
+  schedule:
+    # Run every day at 07:00 UTC (14:00 WIB)
+    - cron: '0 7 * * *'
+  workflow_dispatch: # Allows manual trigger from the GitHub Actions tab
+
+jobs:
+  keep-alive:
+    name: Ping Supabase & Cleanup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase Database
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL || secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY || secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "::error::Missing Supabase credentials! Please configure SUPABASE_URL and SUPABASE_ANON_KEY in your repository secrets (Settings > Secrets and variables > Actions)."
+            exit 1
+          fi
+
+          echo "Pinging Supabase REST API at $SUPABASE_URL..."
+          
+          # Query rooms table to perform an active database query
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -X GET "${SUPABASE_URL}/rest/v1/rooms?select=id&limit=1" \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+            -H "Content-Type: application/json")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n 1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+
+          echo "HTTP Status: $HTTP_CODE"
+          echo "Response: $BODY"
+
+          if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
+            echo "✅ Successfully pinged Supabase database. Project activity recorded!"
+            echo "### Supabase Keep-Alive Status: ✅ Success" >> $GITHUB_STEP_SUMMARY
+            echo "- **Status code:** $HTTP_CODE" >> $GITHUB_STEP_SUMMARY
+            echo "- **Timestamp:** $(date -u)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "::error::Failed to query Supabase (HTTP $HTTP_CODE). Body: $BODY"
+            echo "### Supabase Keep-Alive Status: ❌ Failed (HTTP $HTTP_CODE)" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+      - name: Clean Up Expired Rooms (> 24h)
+        if: success()
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL || secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY || secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: |
+          CUTOFF=$(date -u -d "24 hours ago" +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date -u -v-24H +"%Y-%m-%dT%H:%M:%SZ")
+          echo "Cleaning up rooms created before $CUTOFF..."
+
+          CLEANUP_RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -X DELETE "${SUPABASE_URL}/rest/v1/rooms?created_at=lt.${CUTOFF}" \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+            -H "Content-Type: application/json")
+
+          CLEANUP_CODE=$(echo "$CLEANUP_RESPONSE" | tail -n 1)
+
+          if [ "$CLEANUP_CODE" -ge 200 ] && [ "$CLEANUP_CODE" -lt 300 ]; then
+            echo "✅ Old rooms cleaned up successfully (HTTP $CLEANUP_CODE)"
+            echo "- **Room Cleanup:** ✅ Success (Deleted rooms created before $CUTOFF)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Cleanup request returned HTTP $CLEANUP_CODE (non-critical)"
+            echo "- **Room Cleanup:** ⚠️ HTTP $CLEANUP_CODE" >> $GITHUB_STEP_SUMMARY
+          fi

@@ -10,6 +10,7 @@ import { toast } from "sonner"
 import { supabase, type Room } from "@/lib/supabase"
 import { copyTextToClipboard } from "@/lib/utils/clipboard"
 import { Copy, ArrowLeft } from "lucide-react"
+import { ModeToggle } from "@/components/mode-toggle"
 
 export default function RoomPage() {
   const params = useParams()
@@ -141,22 +142,22 @@ export default function RoomPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-background p-3 sm:p-4 md:p-6">
+      <div className="max-w-4xl mx-auto space-y-6 w-full min-w-0">
         {/* Header */}
-        <Card className="backdrop-blur-sm bg-card/50">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-2xl">Room: {roomCode.toUpperCase()}</CardTitle>
-                <p className="text-muted-foreground">Share this code with your other devices</p>
+        <Card className="backdrop-blur-sm bg-card/50 min-w-0 overflow-hidden">
+          <CardHeader className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="min-w-0">
+                <CardTitle className="text-xl sm:text-2xl truncate">Room: {roomCode.toUpperCase()}</CardTitle>
+                <p className="text-xs sm:text-sm text-muted-foreground">Share this code with your other devices</p>
                 {lastUpdate && (
                   <p className="text-xs text-green-600 mt-1">
                     Last update: {lastUpdate} (real-time)
                   </p>
                 )}
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2 items-center">
                 <Button onClick={() => router.push("/")} variant="outline" size="sm">
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Home
@@ -165,16 +166,17 @@ export default function RoomPage() {
                   <Copy className="w-4 h-4 mr-2" />
                   Copy Code
                 </Button>
+                <ModeToggle size="sm" />
               </div>
             </div>
           </CardHeader>
         </Card>
 
         {/* Content Grid */}
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-6 lg:grid-cols-2 min-w-0">
           {/* Text Clipboard */}
-          <Card className="backdrop-blur-sm bg-card/50">
-            <CardContent className="p-6">
+          <Card className="backdrop-blur-sm bg-card/50 min-w-0 overflow-hidden">
+            <CardContent className="p-4 sm:p-6">
               <TextClipboard
                 roomCode={roomCode.toUpperCase()}
                 textContent={room.text_content}
@@ -185,8 +187,8 @@ export default function RoomPage() {
           </Card>
 
           {/* Image Clipboard */}
-          <Card className="backdrop-blur-sm bg-card/50">
-            <CardContent className="p-6">
+          <Card className="backdrop-blur-sm bg-card/50 min-w-0 overflow-hidden">
+            <CardContent className="p-4 sm:p-6">
               <ImageClipboard
                 roomCode={roomCode.toUpperCase()}
                 imageUrl={room.image_url}

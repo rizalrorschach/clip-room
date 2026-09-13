@@ -260,7 +260,7 @@ export function ImageClipboard({ roomCode, imageUrl, onImageUpdate }: ImageClipb
   }, [handlePaste])
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 w-full min-w-0">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">Image Clipboard</h2>
         <Button onClick={handleRefresh} variant="outline" size="sm">
@@ -270,7 +270,7 @@ export function ImageClipboard({ roomCode, imageUrl, onImageUpdate }: ImageClipb
       </div>
 
       <Card
-        className={`p-6 border-2 border-dashed transition-colors ${
+        className={`p-4 sm:p-6 border-2 border-dashed transition-colors min-w-0 overflow-hidden ${
           isDragOver ? "border-primary bg-primary/5" : "border-muted-foreground/25"
         }`}
         onDrop={handleDrop}
