@@ -2,7 +2,7 @@
 
 import React from "react"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
@@ -62,7 +62,7 @@ export function ImageClipboard({ roomCode, imageUrl, onImageUpdate }: ImageClipb
       // Immediately update local state for instant display
       onImageUpdate(publicUrl)
       
-      toast.success("Image pasted", {
+      toast.success("Image uploaded", {
         description: "Image has been shared to the room",
       })
     } catch (error) {
@@ -253,6 +253,38 @@ export function ImageClipboard({ roomCode, imageUrl, onImageUpdate }: ImageClipb
     }
   }
 
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Invalid file format", {
+        description: "Please select an image file (PNG, JPG, GIF, WebP, SVG, etc.).",
+      })
+      return
+    }
+
+    const MAX_SIZE = 10 * 1024 * 1024 // 10MB
+    if (file.size > MAX_SIZE) {
+      toast.error("File is too large", {
+        description: "Please select an image smaller than 10MB.",
+      })
+      return
+    }
+
+    await uploadImage(file)
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
+  }
+
   // Add paste event listener
   React.useEffect(() => {
     document.addEventListener("paste", handlePaste)
@@ -261,6 +293,15 @@ export function ImageClipboard({ roomCode, imageUrl, onImageUpdate }: ImageClipb
 
   return (
     <div className="space-y-4 w-full min-w-0">
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileSelect}
+        accept="image/*"
+        className="hidden"
+        aria-label="Upload image"
+      />
+
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">Image Clipboard</h2>
         <Button onClick={handleRefresh} variant="outline" size="sm">
@@ -303,6 +344,10 @@ export function ImageClipboard({ roomCode, imageUrl, onImageUpdate }: ImageClipb
               />
             </div>
             <div className="flex flex-wrap gap-2 justify-center">
+              <Button onClick={handleUploadClick} variant="default" size="sm">
+                <Upload className="w-4 h-4 mr-2" />
+                Upload Image
+              </Button>
               <Button onClick={handlePasteButton} variant="outline" size="sm">
                 <ClipboardPaste className="w-4 h-4 mr-2" />
                 Paste Image
@@ -321,23 +366,30 @@ export function ImageClipboard({ roomCode, imageUrl, onImageUpdate }: ImageClipb
               </Button>
             </div>
           </div>
-                 ) : (
-           <div className="space-y-4">
-             <div className="text-center py-8">
-               <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-               <p className="text-lg font-medium mb-2">Drop an image or press Ctrl+V to paste</p>
-               <p className="text-sm text-muted-foreground">
-                 Images will be shared instantly across all devices in this room
-               </p>
-             </div>
-             <div className="flex justify-center">
-               <Button onClick={handlePasteButton} variant="outline" size="sm">
-                 <ClipboardPaste className="w-4 h-4 mr-2" />
-                 Paste Image
-               </Button>
-             </div>
-           </div>
-         )}
+        ) : (
+          <div className="space-y-4">
+            <div
+              onClick={handleUploadClick}
+              className="text-center py-8 cursor-pointer group rounded-lg hover:bg-muted/30 transition-colors"
+            >
+              <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground group-hover:text-primary transition-colors" />
+              <p className="text-lg font-medium mb-1">Click to upload or drag & drop</p>
+              <p className="text-sm text-muted-foreground">
+                PNG, JPG, GIF, WebP, SVG up to 10MB (or press Ctrl+V)
+              </p>
+            </div>
+            <div className="flex flex-wrap justify-center gap-2">
+              <Button onClick={handleUploadClick} variant="default" size="sm">
+                <Upload className="w-4 h-4 mr-2" />
+                Upload Image
+              </Button>
+              <Button onClick={handlePasteButton} variant="outline" size="sm">
+                <ClipboardPaste className="w-4 h-4 mr-2" />
+                Paste Image
+              </Button>
+            </div>
+          </div>
+        )}
       </Card>
     </div>
   )
